@@ -1,5 +1,6 @@
 package com.example.restservice;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -8,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Objects;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,7 +41,7 @@ class EmployeeControllerIntegrationTest {
     void createsReadsUpdatesAndDeletesAnEmployee() throws Exception {
         String employeeId = "new-" + UUID.randomUUID();
         String email = employeeId + "@example.com";
-        String request = Objects.requireNonNull("""
+        String request = """
                 {
                   "employee_id": "%s",
                   "first_name": "Taylor",
@@ -49,7 +49,7 @@ class EmployeeControllerIntegrationTest {
                   "email": "%s",
                   "title": "Platform Engineer"
                 }
-                """.formatted(employeeId, email));
+                """.formatted(employeeId, email);
 
         MvcResult createResult = mockMvc.perform(post("/employees")
                         .contentType(MediaType.parseMediaType("application/json"))
@@ -72,7 +72,7 @@ class EmployeeControllerIntegrationTest {
                 .andExpect(jsonPath("$.employees[?(@.employee_id == '%s')].email".formatted(employeeId))
                         .value(email));
 
-        String updateRequest = Objects.requireNonNull("""
+        String updateRequest = """
                 {
                   "employee_id": "%s",
                   "first_name": "Taylor",
@@ -80,7 +80,7 @@ class EmployeeControllerIntegrationTest {
                   "email": "%s",
                   "title": "Senior Platform Engineer"
                 }
-                """.formatted(employeeId, email));
+                """.formatted(employeeId, email);
         mockMvc.perform(put(employeeUrl)
                         .contentType(MediaType.parseMediaType("application/json"))
                         .content(updateRequest))
@@ -107,7 +107,13 @@ class EmployeeControllerIntegrationTest {
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.detail").exists());
+                .andExpect(result -> {
+                    String detail = objectMapper.readTree(result.getResponse().getContentAsString())
+                            .path("detail")
+                            .asText();
+                    assertTrue(detail.contains("firstName"));
+                    assertTrue(detail.contains("email"));
+                });
 
         mockMvc.perform(post("/employees")
                         .contentType(MediaType.parseMediaType("application/json"))
@@ -116,6 +122,20 @@ class EmployeeControllerIntegrationTest {
                                   "first_name": "Avery",
                                   "last_name": "Morgan",
                                   "email": "AVERY.MORGAN@example.com",
+                                  "title": "Engineer"
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").exists());
+
+        mockMvc.perform(post("/employees")
+                        .contentType(MediaType.parseMediaType("application/json"))
+                        .content("""
+                                {
+                                  "employee_id": "1",
+                                  "first_name": "Taylor",
+                                  "last_name": "Reed",
+                                  "email": "taylor.reed@example.com",
                                   "title": "Engineer"
                                 }
                                 """))

@@ -1,5 +1,7 @@
 package com.example.restservice;
 
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -27,8 +29,11 @@ public class ApiExceptionHandler {
     public ProblemDetail handleInvalidRequest(MethodArgumentNotValidException exception) {
         String detail = exception.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .findFirst()
-                .orElse("Request validation failed");
+                .sorted()
+                .collect(Collectors.joining("; "));
+        if (detail.isBlank()) {
+            detail = "Request validation failed";
+        }
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detail);
     }
 }

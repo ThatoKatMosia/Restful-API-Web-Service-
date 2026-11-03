@@ -39,7 +39,8 @@ class EmployeeControllerTest {
         mockMvc.perform(get("/employees"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.employees[0].employee_id").value("team-42"))
-                .andExpect(jsonPath("$.employees[0].first_name").value("Sam"));
+                .andExpect(jsonPath("$.employees[0].first_name").value("Sam"))
+                .andExpect(jsonPath("$.employees[0].employeeId").doesNotExist());
 
         verify(employeeManager).getEmployees();
     }
@@ -66,6 +67,8 @@ class EmployeeControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "http://localhost/employees/team-42"))
                 .andExpect(jsonPath("$.employee_id").value("team-42"))
+                .andExpect(jsonPath("$.first_name").value("Sam"))
+                .andExpect(jsonPath("$.last_name").value("Rivera"))
                 .andExpect(jsonPath("$.email").value("sam.rivera@example.com"));
 
         verify(employeeManager).createEmployee(objectMapper.readValue(request, EmployeeRequest.class));

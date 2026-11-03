@@ -18,9 +18,9 @@ class EmployeeManagerTest {
     void returnsTheFourSeedEmployees() {
         Employees employees = employeeManager.getEmployees();
 
-        assertEquals(4, employees.getEmployees().size());
-        assertEquals("1", employees.getEmployees().get(0).getEmployee_id());
-        assertEquals("Avery", employees.getEmployees().get(0).getFirst_name());
+        assertEquals(4, employees.employees().size());
+        assertEquals("1", employees.employees().get(0).employeeId());
+        assertEquals("Avery", employees.employees().get(0).firstName());
     }
 
     @Test
@@ -29,11 +29,11 @@ class EmployeeManagerTest {
                 new EmployeeRequest("team-42", "  Sam ", " Rivera  ", "sam.rivera@example.com", "Engineer")
         );
 
-        assertEquals("team-42", employee.getEmployee_id());
-        assertEquals("Sam", employee.getFirst_name());
-        assertEquals("Rivera", employee.getLast_name());
+        assertEquals("team-42", employee.employeeId());
+        assertEquals("Sam", employee.firstName());
+        assertEquals("Rivera", employee.lastName());
         assertEquals(employee, employeeManager.getEmployee("team-42"));
-        assertEquals(5, employeeManager.getEmployees().getEmployees().size());
+        assertEquals(5, employeeManager.getEmployees().employees().size());
     }
 
     @Test
@@ -42,7 +42,20 @@ class EmployeeManagerTest {
                 new EmployeeRequest(null, "Sam", "Rivera", "sam.rivera@example.com", "Engineer")
         );
 
-        assertEquals("5", employee.getEmployee_id());
+        assertEquals("5", employee.employeeId());
+    }
+
+    @Test
+    void trimsProvidedIdsBeforeCheckingForConflicts() {
+        Employee employee = employeeManager.createEmployee(
+                new EmployeeRequest(" 5 ", "Sam", "Rivera", "sam.rivera@example.com", "Engineer")
+        );
+        Employee nextEmployee = employeeManager.createEmployee(
+                new EmployeeRequest(null, "Dana", "Kim", "dana.kim@example.com", "Designer")
+        );
+
+        assertEquals("5", employee.employeeId());
+        assertEquals("6", nextEmployee.employeeId());
     }
 
     @Test
@@ -53,6 +66,11 @@ class EmployeeManagerTest {
         assertThrows(DuplicateEmployeeEmailException.class, () -> employeeManager.createEmployee(
                 new EmployeeRequest("team-42", "Sam", "Rivera", "AVERY.MORGAN@example.com", "Engineer")
         ));
+        assertThrows(DuplicateEmployeeEmailException.class, () -> employeeManager.updateEmployee(
+                "1",
+                new EmployeeRequest("1", "Avery", "Morgan", "JORDAN.LEE@example.com", "Engineer")
+        ));
+        assertEquals("avery.morgan@example.com", employeeManager.getEmployee("1").email());
     }
 
     @Test
@@ -62,13 +80,21 @@ class EmployeeManagerTest {
                 new EmployeeRequest("1", "Avery", "Morgan", "avery.morgan@example.com", "Principal Engineer")
         );
 
-        assertEquals("Principal Engineer", updated.getTitle());
-        assertEquals("Principal Engineer", employeeManager.getEmployee("1").getTitle());
+        assertEquals("Principal Engineer", updated.title());
+        assertEquals("Principal Engineer", employeeManager.getEmployee("1").title());
 
         employeeManager.deleteEmployee("1");
 
-        assertEquals(3, employeeManager.getEmployees().getEmployees().size());
+        assertEquals(3, employeeManager.getEmployees().employees().size());
         assertThrows(EmployeeNotFoundException.class, () -> employeeManager.getEmployee("1"));
+    }
+
+    @Test
+    void returnsAnImmutableEmployeeList() {
+        Employees employees = employeeManager.getEmployees();
+
+        assertThrows(UnsupportedOperationException.class, () -> employees.employees().clear());
+        assertEquals(4, employeeManager.getEmployees().employees().size());
     }
 
     @Test
