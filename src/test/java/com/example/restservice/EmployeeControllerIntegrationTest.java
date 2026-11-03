@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,7 +42,7 @@ class EmployeeControllerIntegrationTest {
     void createsReadsUpdatesAndDeletesAnEmployee() throws Exception {
         String employeeId = "new-" + UUID.randomUUID();
         String email = employeeId + "@example.com";
-        String request = """
+        String request = Objects.requireNonNull("""
                 {
                   "employee_id": "%s",
                   "first_name": "Taylor",
@@ -49,11 +50,11 @@ class EmployeeControllerIntegrationTest {
                   "email": "%s",
                   "title": "Platform Engineer"
                 }
-                """.formatted(employeeId, email);
+                """.formatted(employeeId, email));
 
         MvcResult createResult = mockMvc.perform(post("/employees")
                         .contentType(MediaType.parseMediaType("application/json"))
-                        .content(request))
+                        .content(Objects.requireNonNull(request)))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
                 .andExpect(jsonPath("$.employee_id").value(employeeId))
@@ -69,10 +70,11 @@ class EmployeeControllerIntegrationTest {
                 .andExpect(jsonPath("$.email").value(email));
         mockMvc.perform(get("/employees"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.employees[?(@.employee_id == '%s')].email".formatted(employeeId))
+                .andExpect(jsonPath(Objects.requireNonNull(
+                        "$.employees[?(@.employee_id == '%s')].email".formatted(employeeId)))
                         .value(email));
 
-        String updateRequest = """
+        String updateRequest = Objects.requireNonNull("""
                 {
                   "employee_id": "%s",
                   "first_name": "Taylor",
@@ -80,10 +82,10 @@ class EmployeeControllerIntegrationTest {
                   "email": "%s",
                   "title": "Senior Platform Engineer"
                 }
-                """.formatted(employeeId, email);
+                """.formatted(employeeId, email));
         mockMvc.perform(put(employeeUrl)
                         .contentType(MediaType.parseMediaType("application/json"))
-                        .content(updateRequest))
+                        .content(Objects.requireNonNull(updateRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Senior Platform Engineer"));
 

@@ -62,7 +62,7 @@ class EmployeeControllerTest {
                 """;
 
         mockMvc.perform(post("/employees")
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.parseMediaType("application/json"))
                         .content(request))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "http://localhost/employees/team-42"))
