@@ -7,12 +7,19 @@ employees. Data resets when the application restarts.
 ## Requirements
 
 - JDK 25
-- Maven
 
 ## Run locally
 
+Windows:
+
 ```shell
-mvn spring-boot:run
+.\mvnw.cmd spring-boot:run
+```
+
+macOS or Linux:
+
+```shell
+./mvnw spring-boot:run
 ```
 
 The API is available at `http://localhost:8080`.
@@ -49,8 +56,19 @@ and invalid request bodies return `400` with a Problem Details response.
 
 ## Tests
 
-Run the unit and integration tests with:
+Run a clean build and all unit and integration tests with the Maven Wrapper:
 
+Windows:
 ```shell
-mvn test
+.\mvnw.cmd clean verify
 ```
+
+macOS or Linux:
+```shell
+./mvnw clean verify
+```
+
+The wrapper downloads the pinned Maven distribution on its first run and checks
+its SHA-256 checksum. The build fails if compilation, tests, or packaging fail.
+In VS Code, run the default build task (`Terminal` > `Run Build Task`) to run
+`Maven: clean verify`.

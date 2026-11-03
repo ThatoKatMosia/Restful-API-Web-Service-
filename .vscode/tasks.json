@@ -1,0 +1,16 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Maven: clean verify",
+            "type": "process",
+            "command": "${workspaceFolder}\\mvnw.cmd",
+            "args": ["clean", "verify"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}
